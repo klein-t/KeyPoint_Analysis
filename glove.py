@@ -13,7 +13,6 @@ class glove(KPA):
         self.glove_model = gloader.load(f"glove-wiki-gigaword-{self.emb_dim}")
         self.vocab = {"id2word": {}, "word2id": {}, "vocabs":[]}
 
-
     # extract all sentences, build the set of tokens, assign to each an id
     def buil_vocab(self):
         word_id = 0
@@ -44,6 +43,18 @@ class glove(KPA):
             dataframe = self.encoded_dataframes[index]
             for column in dataframe.columns[1:3]:
                 dataframe[column] = dataframe[column].apply(lambda sentence: [self.vocab['word2id'][words] for words in sentence])
+
+    def get_longest_sentence(self):
+        self.max_lenght = 0
+        for index in [f"arguments_{dataset}" for dataset in ['train', 'dev']]:
+            dataframe = self.encoded_dataframes[index]
+            for column in dataframe.columns[1:3]:
+                    for sentence in dataframe[column]:
+                        self.max_lenght = max(self.max_lenght, len(sentence))
+        
+    #I need to pad my vectors, but first I have to turn them in torch tensors
+
+
 
 
 
