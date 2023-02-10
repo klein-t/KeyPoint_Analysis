@@ -70,11 +70,20 @@ class glove(KPA):
         self.build_embedding_matrix()
         self.encoding()
         self.get_longest_sentence()
-
         self.alligned_dataframe = self.dataframes['labels_test'][['arg_id', 'key_point_id']].applymap(self.alligment)
         self.alligned_dataframe = self.alligned_dataframe.applymap(self.padding)
 
-        # TODO for some reasons 'arg_id' and 'kp_id seem swapped in the alligned dataframe
+
+    def measure(self):
+        self.scores = {}
+        self.scores['sum'] = {}
+        self.scores['average'] = {}
+
+        for row in range(self.alligned_dataframe.shape[0]):
+            encoded_arg = self.embedding_matrix[self.alligned_dataframe.iloc[row,'arg_id']]
+            encoded_kp = self.embedding_matrix[self.alligned_dataframe.iloc[row,'key_point_id']]
+
+
 
 
 
