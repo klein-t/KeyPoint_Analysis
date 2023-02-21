@@ -13,10 +13,11 @@ import os
 
 
 class glove(KPA):
-    def __init__(self, embedding_space_dimension = 300):
+    def __init__(self, set = 'test', embedding_space_dimension = 300):
         super().__init__()
 
         self.emb_dim = embedding_space_dimension
+        self.set = set
         self.model_name = f"glove-wiki-gigaword-{self.emb_dim}"
         self.model_file = f"{self.model_name}.model"
         self.model_path = f"glove_model\{self.model_file}"
@@ -69,10 +70,10 @@ class glove(KPA):
                         self.max_len = max(self.max_len, len(sentence))
 
     def alligment(self,id):
-        if id in self.encoded_dataframes['arguments_test']['arg_id'].to_numpy():
-            return self.encoded_dataframes['arguments_test'].loc[self.encoded_dataframes['arguments_test']['arg_id'] == id, 'argument'].iloc[0]
-        elif id in self.encoded_dataframes['key_points_test']['key_point_id'].to_numpy():
-            return self.encoded_dataframes['key_points_test'].loc[self.encoded_dataframes['key_points_test']['key_point_id'] == id, 'key_point'].iloc[0]
+        if id in self.encoded_dataframes[f'arguments_{self.set}']['arg_id'].to_numpy():
+            return self.encoded_dataframes[f'arguments_{self.set}'].loc[self.encoded_dataframes[f'arguments_{self.set}']['arg_id'] == id, 'argument'].iloc[0]
+        elif id in self.encoded_dataframes[f'key_points_{self.set}']['key_point_id'].to_numpy():
+            return self.encoded_dataframes[f'key_points_{self.set}'].loc[self.encoded_dataframes[f'key_points_{self.set}']['key_point_id'] == id, 'key_point'].iloc[0]
 
 
     def unpack(self, data):
@@ -91,8 +92,8 @@ class glove(KPA):
         self.build_embedding_matrix()
         self.encoding()
         self.get_longest_sentence()
-        self.alligned_dataframe = self.dataframes['labels_test'][['arg_id', 'key_point_id']]
-        self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.dataframes['labels_test'][['arg_id', 'key_point_id']].applymap(self.alligment)
+        self.alligned_dataframe = self.dataframes[f'labels_{self.set}'][['arg_id', 'key_point_id']]
+        self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.dataframes[f'labels_{self.set}'][['arg_id', 'key_point_id']].applymap(self.alligment)
         self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']].applymap(self.padding)
 
     def measure(self):
@@ -120,7 +121,7 @@ class glove(KPA):
 
     def evaluate(self): 
             predictions = self.scores['list']
-            true_labels = self.dataframes['labels_test']['label'].to_list()
+            true_labels = self.dataframes[f'labels_{self.set}']['label'].to_list()
             fpr, tpr, thresholds = roc_curve(true_labels, predictions)
             thr = thresholds[np.argmin(np.abs(fpr + tpr - 1))]
 
