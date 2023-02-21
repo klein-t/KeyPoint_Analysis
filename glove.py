@@ -19,12 +19,13 @@ class glove(KPA):
         self.emb_dim = embedding_space_dimension
         self.model_name = f"glove-wiki-gigaword-{self.emb_dim}"
         self.model_file = f"{self.model_name}.model"
+        self.model_path = f"glove_model\{self.model_file}"
         
-        if os.path.exists(self.model_file):
-            self.glove_model = gensim.models.KeyedVectors.load(self.model_file)
+        if os.path.exists(self.model_path):
+            self.glove_model = gensim.models.KeyedVectors.load(self.model_path)
         else:
             self.glove_model = gloader.load(self.model_name)
-            self.glove_model.save(self.model_file)
+            self.glove_model.save(self.model_path)
 
         self.vocab = {"id2word": {}, "word2id": {}, "vocabs":[]}
 
