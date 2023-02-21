@@ -5,6 +5,14 @@ import KPA
 from KPA import KPA
 import copy
 import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score, precision_score, PrecisionRecallDisplay, roc_curve, balanced_accuracy_score, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, average_precision_score, PrecisionRecallDisplay, ConfusionMatrixDisplay
+import sklearn
+from sklearn.metrics import precision_recall_curve
+from numpy import argmax
+import os
+
 
 
 class glove(KPA):
@@ -12,7 +20,15 @@ class glove(KPA):
         super().__init__()
 
         self.emb_dim = embedding_space_dimension
-        self.glove_model = gloader.load(f"glove-wiki-gigaword-{self.emb_dim}")
+        self.model_name = f"glove-wiki-gigaword-{self.emb_dim}"
+        self.model_file = f"{self.model_name}.model"
+        
+        if os.path.exists(self.model_file):
+            self.glove_model = gensim.models.KeyedVectors.load(self.model_file)
+        else:
+            self.glove_model = gloader.load(self.model_name)
+            self.glove_model.save(self.model_file)
+
         self.vocab = {"id2word": {}, "word2id": {}, "vocabs":[]}
 
     # extract all sentences, build the set of tokens, assign to each an id
@@ -70,8 +86,17 @@ class glove(KPA):
         self.build_embedding_matrix()
         self.encoding()
         self.get_longest_sentence()
-        self.alligned_dataframe = self.dataframes['labels_test'][['arg_id', 'key_point_id']].applymap(self.alligment)
-        self.alligned_dataframe = self.alligned_dataframe.applymap(self.padding)
+        self.alligned_dataframe = self.dataframes['labels_test'][['arg_id', 'key_point_id']]
+        self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.dataframes['labels_test'][['arg_id', 'key_point_id']].applymap(self.alligment)
+        self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']].applymap(self.padding)
+
+    #def unpack(self, lst):
+       # return [elem for sublist in lst for elem in (self.unpack(sublist) if isinstance(sublist, list) else [sublist])]
+
+    def unpack(self, data):
+        for i, arr in enumerate(data):
+            data[i] = arr[0][0]
+        return data
 
 
     def measure(self):
@@ -79,22 +104,53 @@ class glove(KPA):
         self.scores['sum'] = {}
         self.scores['average'] = {}
 
-        for row in range(self.alligned_dataframe.shape[0]):
-            encoded_arg = self.embedding_matrix[self.alligned_dataframe.iloc[row,'arg_id']]
-            encoded_kp = self.embedding_matrix[self.alligned_dataframe.iloc[row,'key_point_id']]
+        self.scores['list'] = []
+
+        for _, row in self.alligned_dataframe.iterrows():
+            encoded_arg = self.embedding_matrix[row['encoded_arg_id']]
+            encoded_kp = self.embedding_matrix[row['encoded_key_point_id']]
+
+            #summing token embeddings to get sentence overall embedding, then calculating cosine similarity
+            summed_arg = encoded_arg.sum(axis = 0).reshape(1, -1)
+            summed_kp = encoded_kp.sum(axis = 0).reshape(1, -1)
+
+            similarity_summed = cosine_similarity(summed_arg, summed_kp)
+
+            self.scores['sum'][row['arg_id']] = {row['key_point_id'] : similarity_summed}
+            self.scores['list'].append(similarity_summed)
+
+        self.scores['list'] = np.asarray(self.unpack(self.scores['list']))
 
 
+    def evaluate(self): 
+            predictions = self.scores['list']
+            true_labels = self.dataframes['labels_test']['label'].to_list()
+            fpr, tpr, thresholds = roc_curve(true_labels, predictions)
+            thr = thresholds[np.argmin(np.abs(fpr + tpr - 1))]
 
+            predictions_thr = np.zeros(predictions.shape)
+            predictions_thr[predictions >= thr] = 1
 
+            print(classification_report(predictions_thr, true_labels))
+                
+            print(f'The average precision score is: {average_precision_score(true_labels, predictions_thr)}.')
+            print(f'The balanced accuracy score is: {balanced_accuracy_score(true_labels, predictions_thr)}.')
+            print(f'The tuned threshold is: {thr}.')
 
+            print(f'The confusion matrix is: ')
+            ConfusionMatrixDisplay.from_predictions(true_labels, predictions_thr)
 
-
+            PrecisionRecallDisplay.from_predictions(true_labels, predictions)
+    
+    def run(self):
+        self.processing()
+        self.measure()
+        self.evaluate()
 
 
 if __name__ == "__main__":
-    print('hello')
-    g = glove(300)
-    g.processing()
+    g = glove()
+    g.run()
 
 
                 
