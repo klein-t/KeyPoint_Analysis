@@ -54,11 +54,7 @@ class KPA():
     def processing(self):
         self.__text_processing()
         self.__tokenize()
-        print('hello c:')
 
 
 if __name__ == "__main__":
     print('hello main c:')
-    #instance = KPA()
-    #instance.processing()
-    #print(instance.raw_raw_dataframes.keys())
