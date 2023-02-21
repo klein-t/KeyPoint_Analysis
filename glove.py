@@ -6,11 +6,8 @@ from KPA import KPA
 import copy
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score, precision_score, PrecisionRecallDisplay, roc_curve, balanced_accuracy_score, ConfusionMatrixDisplay
+from sklearn.metrics import  classification_report, PrecisionRecallDisplay, roc_curve, balanced_accuracy_score, ConfusionMatrixDisplay
 from sklearn.metrics import classification_report, average_precision_score, PrecisionRecallDisplay, ConfusionMatrixDisplay
-import sklearn
-from sklearn.metrics import precision_recall_curve
-from numpy import argmax
 import os
 
 
@@ -76,8 +73,15 @@ class glove(KPA):
         elif id in self.encoded_dataframes['key_points_test']['key_point_id'].to_numpy():
             return self.encoded_dataframes['key_points_test'].loc[self.encoded_dataframes['key_points_test']['key_point_id'] == id, 'key_point'].iloc[0]
 
+
+    def unpack(self, data):
+        for i, arr in enumerate(data):
+            data[i] = arr[0][0]
+        return data
+
     def padding(self, lst):
         return lst + [0] * (self.max_len - len(lst))
+
 
     def processing(self):
         if not self.processed:
@@ -90,19 +94,10 @@ class glove(KPA):
         self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.dataframes['labels_test'][['arg_id', 'key_point_id']].applymap(self.alligment)
         self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']] = self.alligned_dataframe[['encoded_arg_id', 'encoded_key_point_id']].applymap(self.padding)
 
-    #def unpack(self, lst):
-       # return [elem for sublist in lst for elem in (self.unpack(sublist) if isinstance(sublist, list) else [sublist])]
-
-    def unpack(self, data):
-        for i, arr in enumerate(data):
-            data[i] = arr[0][0]
-        return data
-
-
     def measure(self):
         self.scores = {}
         self.scores['sum'] = {}
-        self.scores['average'] = {}
+        #self.scores['average'] = {}
 
         self.scores['list'] = []
 
