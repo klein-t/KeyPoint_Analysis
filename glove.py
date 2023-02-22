@@ -68,7 +68,7 @@ class glove(data):
             self.scores['list'].append(similarity_summed)
 
         self.scores['list'] = np.asarray(unpack(self.scores['list']))
-        print(f'we are evaluating similarity among arguments and key points in the {self.set} set')
+        print(f'Evaluating similarity among arguments and key points in the {self.set} set\n')
 
 
     def evaluate(self): 
@@ -80,7 +80,7 @@ class glove(data):
             predictions_thr = np.zeros(predictions.shape)
             predictions_thr[predictions >= thr] = 1
 
-            print(classification_report(predictions_thr, true_labels))
+            print('CLASSIFICATION REPORT:\n', classification_report(predictions_thr, true_labels))
                 
             print(f'The average precision score is: {average_precision_score(true_labels, predictions_thr)}.')
             print(f'The balanced accuracy score is: {balanced_accuracy_score(true_labels, predictions_thr)}.')
