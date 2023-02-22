@@ -13,11 +13,10 @@ from utils import unpack
 
 
 class glove(data):
-    def __init__(self, set = 'test', embedding_space_dimension = 300):
+    def __init__(self, embedding_space_dimension = 300):
         super().__init__()
 
         self.emb_dim = embedding_space_dimension
-        self.set = set
         self.model_name = f"glove-wiki-gigaword-{self.emb_dim}"
         self.model_file = f"{self.model_name}.model"
         self.model_path = f"glove_model\{self.model_file}"
@@ -47,7 +46,8 @@ class glove(data):
         self.build_embedding_matrix()
 
 
-    def measure(self):
+    def measure(self, set = 'test'):
+        self.set = set
         self.scores = {}
         self.scores['sum'] = {}
         #self.scores['average'] = {}
@@ -55,8 +55,8 @@ class glove(data):
         self.scores['list'] = []
 
         for _, row in self.alligned_dataframes[self.set].iterrows():
-            encoded_arg = self.embedding_matrix[row['encoded_arg_id']]
-            encoded_kp = self.embedding_matrix[row['encoded_key_point_id']]
+            encoded_arg = self.embedding_matrix[row['encoded_arg']]
+            encoded_kp = self.embedding_matrix[row['encoded_kp']]
 
             #summing token embeddings to get sentence overall embedding, then calculating cosine similarity
             summed_arg = encoded_arg.sum(axis = 0).reshape(1, -1)
@@ -91,9 +91,9 @@ class glove(data):
 
             PrecisionRecallDisplay.from_predictions(true_labels, predictions)
     
-    def run(self):
+    def run(self, set = 'test'):
         self.processing()
-        self.measure()
+        self.measure(set)
         self.evaluate()
 
 
