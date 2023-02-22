@@ -2,7 +2,7 @@ import gensim
 import numpy as np
 import gensim.downloader as gloader
 import KPA
-from KPA import data
+from KPA import Data
 import copy
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
@@ -12,7 +12,7 @@ import os
 from utils import unpack
 
 
-class glove(data):
+class Glove(Data):
     def __init__(self, embedding_space_dimension = 300):
         super().__init__()
 
@@ -98,7 +98,7 @@ class glove(data):
 
 
 if __name__ == "__main__":
-    g = glove()
+    g = Glove()
     g.run()
 
 

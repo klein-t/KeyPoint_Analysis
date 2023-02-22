@@ -7,7 +7,7 @@ from nltk.tokenize import wordpunct_tokenize
 from utils import padding
 
  
-class data():
+class Data():
     def __init__(self):
         self.download_types = ['arguments', 'key_points', 'labels']
         self.types = self.download_types[:-1]
